@@ -1,21 +1,41 @@
 const express = require('express')
 const app = express()
-var cors = require('cors')
+const cors = require('cors')
+const dotenv = require('dotenv').config()
+const jwt = require('jsonwebtoken');
 
+/* INITIALISATION ZONE
+---------------------------------------------------- */
 
-// import json datas
+const PORT = 8080
+//JWT token lifetime
+const jwtExpirySeconds = 3000
+
+/* IMPORT JSON DATA
+---------------------------------------------------- */
 const articles = require('./articles.json')
+const users = require('./users.json')
 
-// Middleware 
+
+/* MIDDLEWARE
+---------------------------------------------------- */
 app.use(express.json())
 app.use(cors())
 
+// function myLogger (req, res, next) {
+//   console.log('LOGGED');
+//   next();
+// };
+// const myLogger = require('myLogger')
+
+// app.use(myLogger())
 
 
 var corsOptions = {
   origin: 'http://example.com',
   optionsSuccessStatus: 200 
 }
+
 
 //cors(corsOptions), 
 /**
@@ -26,6 +46,7 @@ app.get('/api/articles', (req,res) => {
   //res.header('Access-Control-Allow-Origin', 'http://example.com');
   res.status(200).json(articles);
 })
+
 
 /**
  * GET on articles - find by id params - /api/article/:id
@@ -39,12 +60,71 @@ app.get('/api/article/:id', (req, res) => {
 })
 
 
+/**
+ * check if user params match with a user present in hard coding db - json file
+ * if yes send a json response with the user name and a jwt - set the jwt in the response header
+ */
+app.get('/api/signin', (req,res) => {
+  const user = req.query.user;
+  if(!userExist(user)){
+    res.status(404).send('user not found')
+  } else {
+    const token = generateJWT(user)
+    res.set('authorization', 'Bearer' + token)
+    res.status(200).json(
+      {
+      user: 'user exist',
+      msg: 'you are loggin',
+      token: token
+      }
+    )
+  }
+})
+
+
+app.get('/api/check', (req, res) => {
+  const token = req.query.token;
+  payload = jwt.verify(token, process.env.TOKEN_SECRET)
+  res.status(200).send(payload.user)
+})
+
+
+
+/* SERVER LISTENING PORT
+---------------------------------------------------- */
+
+app.listen(PORT, () => {
+  console.log(`runnig at http://localhost:${PORT}`)
+})
+
+
+
+/* FUNCTION
+---------------------------------------------------- */
+
+/**
+ * return true if a user (key user) present in json files match the user param
+ */
+function userExist(user){
+  return users.some(function(el) {
+    return el.user === user;
+  }); 
+}
+
+/**
+ * return a JWT generated based a secret key in dotenv and user name receive in params
+ */
+function generateJWT(user){
+  const token = jwt.sign({ user }, process.env.TOKEN_SECRET, {
+    algorithm: "HS256",
+    expiresIn: jwtExpirySeconds,
+  })
+  return token;
+}
+
+
 
 app.post('/articles', (req,res) => {
   parkings.push(req.body)
   res.status(200).json(parkings)
-})
-
-app.listen(8080, () => {
-  console.log('runnig at http://localhost:8080')
 })
