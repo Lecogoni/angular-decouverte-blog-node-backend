@@ -1,10 +1,12 @@
 [
   {
     "user": "nico",
+    "email": "nico",
     "password": "nico"
   },
   {
     "user": "lea",
+    "email": "lea",
     "password": "lea"
   }
 ]

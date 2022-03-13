@@ -60,24 +60,24 @@ app.get('/api/article/:id', (req, res) => {
 })
 
 
-/**
+/** 
  * check if user params match with a user present in hard coding db - json file
  * if yes send a json response with the user name and a jwt - set the jwt in the response header
  */
-app.get('/api/signin', (req,res) => {
-  const user = req.query.user;
-  if(!userExist(user)){
+app.get('/api/loggin', (req,res) => {
+  const email = req.query.email;
+  const password = req.query.password;
+  if(!userExist(email)){
     res.status(404).send('user not found')
   } else {
-    const token = generateJWT(user)
-    res.set('authorization', 'Bearer' + token)
-    res.status(200).json(
-      {
-      user: 'user exist',
-      msg: 'you are loggin',
-      token: token
-      }
-    )
+    const token = generateJWT(email);
+    //res.set('authorization', 'Bearer' + token)
+    res.setHeader({isLog: true});
+    res.status(200).json({
+        isLog: true,
+        msg: 'you are loggin',
+        token: token
+        });
   }
 })
 
@@ -103,19 +103,19 @@ app.listen(PORT, () => {
 ---------------------------------------------------- */
 
 /**
- * return true if a user (key user) present in json files match the user param
+ * return true if a email (key email) present in json files match the user param
  */
-function userExist(user){
+function userExist(email){
   return users.some(function(el) {
-    return el.user === user;
+    return el.email === email;
   }); 
 }
 
 /**
  * return a JWT generated based a secret key in dotenv and user name receive in params
  */
-function generateJWT(user){
-  const token = jwt.sign({ user }, process.env.TOKEN_SECRET, {
+function generateJWT(email){
+  const token = jwt.sign({ email }, process.env.TOKEN_SECRET, {
     algorithm: "HS256",
     expiresIn: jwtExpirySeconds,
   })
@@ -124,7 +124,7 @@ function generateJWT(user){
 
 
 
-app.post('/articles', (req,res) => {
-  parkings.push(req.body)
-  res.status(200).json(parkings)
-})
+
+// res.status(200).json(
+//   
+// )
